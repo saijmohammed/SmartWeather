@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartWeather – Prévisions intelligentes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top, #38bdf8, #0f172a);
+            color: #f9fafb;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1100px;
+            padding: 24px;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 18px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            padding: 24px 28px;
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .title {
+            font-size: 1.7rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #cbd5f5;
+            margin-top: 4px;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #22c55e;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            background: rgba(15, 23, 42, 0.75);
+            border-radius: 14px;
+            padding: 18px 20px;
+            border: 1px solid rgba(51, 65, 85, 0.8);
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: #e5e7eb;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 9px 11px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: rgba(15, 23, 42, 0.6);
+            color: #f9fafb;
+            font-size: 0.9rem;
+        }
+
+        input::placeholder {
+            color: #6b7280;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4);
+        }
+
+        input[readonly] {
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        button {
+            width: 100%;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 14px;
+            margin-top: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+            box-shadow: 0 12px 30px rgba(56, 189, 248, 0.4);
+        }
+
+        button:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            box-shadow: 0 16px 40px rgba(56, 189, 248, 0.5);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: default;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-secondary {
+            width: auto;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            border-radius: 999px;
+            background: transparent;
+            border: 1px solid rgba(148, 163, 184, 0.8);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            filter: none;
+            transform: none;
+            background: rgba(15, 23, 42, 0.7);
+        }
+
+        .small-info {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
+        .error-box {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #fecaca;
+            background: rgba(127, 29, 29, 0.8);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 1px solid #b91c1c;
+        }
+
+        .success-box {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #bbf7d0;
+            background: rgba(6, 95, 70, 0.8);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 1px solid #047857;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .email-status {
+            font-size: 0.8rem;
+            color: #a5b4fc;
+            margin-bottom: 6px;
+        }
+
+        .city-summary {
+            font-size: 0.9rem;
+            color: #cbd5f5;
+            margin-bottom: 6px;
+        }
+
+        .forecast-meta {
+            font-size: 0.78rem;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+
+        .days-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .day-card {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 12px;
+            padding: 10px 12px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            font-size: 0.82rem;
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .day-date {
+            font-weight: 600;
+        }
+
+        .day-status {
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            border: 1px solid rgba(148, 163, 184, 0.8);
+        }
+
+        .day-status-critical {
+            border-color: #f97316;
+            color: #fed7aa;
+            background: rgba(248, 113, 113, 0.08);
+        }
+
+        .day-status-normal {
+            border-color: #22c55e;
+            color: #bbf7d0;
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        .day-temps {
+            margin-bottom: 3px;
+        }
+
+        .alert-sim {
+            margin-top: 8px;
+            font-size: 0.78rem;
+            color: #fbbf24;
+        }
+
+        .history-box {
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: #e5e7eb;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(75, 85, 99, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="card">
+        <div class="header">
+            <div>
+                <div class="title">SmartWeather ☁️</div>
+                <div class="subtitle">
+                    Votre e-mail est mémorisé une fois, puis vous tapez seulement la ville.
+                    L’app analyse les prévisions (Azure Functions) et déclenche une alerte (simulation e-mail).
+                </div>
+            </div>
+            <div class="badge">
+                <span class="badge-dot"></span>
+                Projet Cloud – 4 services Azure
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Partie gauche : formulaire -->
+            <div class="section">
+                <div class="section-title">Étape 1 : e-mail (une seule fois) & Étape 2 : ville</div>
+
+                <div id="email-status" class="email-status hidden"></div>
+
+                <form id="forecast-form">
+                    <div class="input-group">
+                        <label for="email">Adresse e-mail</label>
+                        <input id="email" type="email" placeholder="Ex : prenom.nom@gmail.com" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="city">Ville</label>
+                        <input id="city" type="text" placeholder="Ex : El Jadida, Casablanca, Rabat..." required>
+                    </div>
+
+                    <button type="submit" id="submit-btn">
+                        <span id="btn-text">Voir la météo et les prochains jours</span>
+                        <span id="btn-spinner" class="hidden">• • •</span>
+                    </button>
+
+                    <p class="small-info">
+                        L’e-mail est mémorisé localement. À chaque ville saisie, Azure Functions récupère les
+                        prévisions et, en cas de conditions critiques, une alerte (simulation d’envoi d’e-mail via
+                        Azure Communication Services) serait déclenchée.
+                    </p>
+                </form>
+
+                <div style="margin-top:6px;">
+                    <button type="button" id="change-email-btn" class="btn-secondary hidden">
+                        Changer d’e-mail
+                    </button>
+                </div>
+
+                <div id="form-error" class="error-box hidden"></div>
+                <div id="form-success" class="success-box hidden"></div>
+            </div>
+
+            <!-- Partie droite : prévisions -->
+            <div class="section">
+                <div class="section-title">Prévisions & alerte intelligente</div>
+
+                <div id="no-data">
+                    <p style="font-size:0.9rem; color:#9ca3af;">
+                        Aucune prévision chargée pour l’instant.<br>
+                        → Saisissez <strong>votre e-mail</strong> (une seule fois) puis une
+                        <strong>ville</strong>, et cliquez sur
+                        <em>Voir la météo et les prochains jours</em>.
+                    </p>
+                </div>
+
+                <div id="forecast-panel" class="hidden">
+                    <div class="city-summary" id="city-summary"></div>
+                    <div class="forecast-meta" id="forecast-meta"></div>
+
+                    <div class="days-list" id="days-list"></div>
+
+                    <div class="alert-sim" id="alert-sim"></div>
+
+                    <div class="history-box">
+                        <strong>Historique (Cosmos DB – partie conceptuelle) :</strong><br>
+                        Dans une version étendue, chaque paire (e-mail, ville) pourrait être stockée dans Azure Cosmos DB.
+                        Une fonction planifiée analyserait chaque soir les prévisions et enverrait les e-mails d’alerte
+                        automatiquement.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // URL de la Function Azure pour les prévisions
+    const FORECAST_URL =
+        "https://smartweather-func-fgcsb7evbng2hzca.francecentral-01.azurewebsites.net/api/GetForecast";
+
+    // Clé de stockage local pour mémoriser l’e-mail
+    const STORAGE_KEY_EMAIL = "smartweather_email";
+
+    const form = document.getElementById("forecast-form");
+    const cityInput = document.getElementById("city");
+    const emailInput = document.getElementById("email");
+    const btn = document.getElementById("submit-btn");
+    const btnText = document.getElementById("btn-text");
+    const btnSpinner = document.getElementById("btn-spinner");
+
+    const formError = document.getElementById("form-error");
+    const formSuccess = document.getElementById("form-success");
+
+    const emailStatus = document.getElementById("email-status");
+    const changeEmailBtn = document.getElementById("change-email-btn");
+
+    const noData = document.getElementById("no-data");
+    const forecastPanel = document.getElementById("forecast-panel");
+    const citySummary = document.getElementById("city-summary");
+    const forecastMeta = document.getElementById("forecast-meta");
+    const daysList = document.getElementById("days-list");
+    const alertSim = document.getElementById("alert-sim");
+
+    let storedEmail = null;
+    let lastCity = "";
+
+    // ---------- helpers ----------
+    const WEEKDAYS = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+
+    function buildDisplayDate(dateObj) {
+        if (!(dateObj instanceof Date) || isNaN(dateObj)) return null;
+        return WEEKDAYS[dateObj.getDay()] + " " +
+            dateObj.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+    }
+
+    function dateFromDDMM(dateStr) {
+        const parts = dateStr.split("/");
+        if (parts.length < 2) return null;
+        const day = Number(parts[0]);
+        const month = Number(parts[1]);
+        if (!day || !month) return null;
+        const nowYear = new Date().getFullYear();
+        const d = new Date(nowYear, month - 1, day);
+        if (isNaN(d)) return null;
+        return d;
+    }
+
+    function buildDisplayDateFromString(dateStr, index) {
+        if (!dateStr) return null;
+        let d = null;
+        if (dateStr.includes("/")) {
+            d = dateFromDDMM(dateStr);
+        } else {
+            const tmp = new Date(dateStr);
+            if (!isNaN(tmp)) d = tmp;
+        }
+        if (d) return buildDisplayDate(d);
+        // fallback : aujourd’hui + index
+        const base = new Date();
+        base.setDate(base.getDate() + index);
+        return buildDisplayDate(base);
+    }
+
+    function pickFirstDefined(...vals) {
+        for (const v of vals) {
+            if (v !== undefined && v !== null && v !== "") return v;
+        }
+        return undefined;
+    }
+
+    function buildAdvice(temp, description) {
+        const desc = (description || "").toLowerCase();
+        let critical = false;
+        let advice = "Temps agréable 🙂 : profitez de votre journée.";
+
+        if (temp >= 38 || desc.includes("canicule")) {
+            critical = true;
+            advice = "Alerte chaleur 🔥 : buvez beaucoup d’eau, évitez le soleil aux heures de pointe et restez au frais.";
+        } else if (desc.includes("orage")) {
+            critical = true;
+            advice = "Alerte orage ⛈️ : évitez de sortir si possible et restez à l'abri.";
+        } else if (desc.includes("pluie forte") || desc.includes("forte pluie")) {
+            critical = true;
+            advice = "Pluie forte ☔ : soyez prudent sur la route, risque d'inondation.";
+        } else if (desc.includes("pluie")) {
+            advice = "Pluie 🌧️ : pensez à prendre un parapluie.";
+        } else if (temp < 5) {
+            critical = true;
+            advice = "Froid intense ❄️ : couvrez-vous bien et limitez les sorties prolongées.";
+        } else if (temp < 10) {
+            advice = "Il fait frais ❄️ : prenez une veste.";
+        }
+
+        return { advice, critical };
+    }
+
+    // Cherche récursivement un tableau de jours dans l’objet
+    function findDaysArray(obj, depth = 0) {
+        if (!obj || typeof obj !== "object" || depth > 4) return null;
+
+        for (const key of Object.keys(obj)) {
+            const v = obj[key];
+            if (Array.isArray(v) && v.length && typeof v[0] === "object") {
+                return v;
+            }
+            if (v && typeof v === "object") {
+                const res = findDaysArray(v, depth + 1);
+                if (res) return res;
+            }
+        }
+        return null;
+    }
+
+    // ---------------------------- Gestion du mode "email mémorisé"
+    function initEmailFromStorage() {
+        storedEmail = localStorage.getItem(STORAGE_KEY_EMAIL);
+
+        if (storedEmail) {
+            emailInput.value = storedEmail;
+            emailInput.readOnly = true;
+            emailStatus.textContent =
+                "E-mail mémorisé : " + storedEmail + " (vous pouvez directement saisir la ville).";
+            emailStatus.classList.remove("hidden");
+            changeEmailBtn.classList.remove("hidden");
+        } else {
+            emailInput.value = "";
+            emailInput.readOnly = false;
+            emailStatus.classList.add("hidden");
+            changeEmailBtn.classList.add("hidden");
+        }
+    }
+
+    changeEmailBtn.addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEY_EMAIL);
+        storedEmail = null;
+        initEmailFromStorage();
+        showSuccess("E-mail réinitialisé, vous pouvez saisir une nouvelle adresse.");
+    });
+
+    // ---------------------------- Helpers UI
+    function setLoading(isLoading) {
+        if (isLoading) {
+            btn.disabled = true;
+            btnText.classList.add("hidden");
+            btnSpinner.classList.remove("hidden");
+        } else {
+            btn.disabled = false;
+            btnText.classList.remove("hidden");
+            btnSpinner.classList.add("hidden");
+        }
+    }
+
+    function showError(msg) {
+        formError.textContent = msg;
+        formError.classList.remove("hidden");
+        formSuccess.classList.add("hidden");
+    }
+
+    function showSuccess(msg) {
+        formSuccess.textContent = msg;
+        formSuccess.classList.remove("hidden");
+        formError.classList.add("hidden");
+    }
+
+    function clearMessages() {
+        formError.classList.add("hidden");
+        formSuccess.classList.add("hidden");
+    }
+
+    // ---------------------------- Soumission du formulaire
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearMessages();
+
+        const city = cityInput.value.trim();
+        lastCity = city;
+        let email = storedEmail || emailInput.value.trim();
+
+        if (!email) {
+            showError("Merci de saisir votre e-mail (une seule fois).");
+            return;
+        }
+        if (!city) {
+            showError("Merci de saisir une ville.");
+            return;
+        }
+
+        if (!storedEmail) {
+            localStorage.setItem(STORAGE_KEY_EMAIL, email);
+            storedEmail = email;
+            initEmailFromStorage();
+        }
+
+        setLoading(true);
+
+        try {
+            const url = `${FORECAST_URL}?city=${encodeURIComponent(city)}&email=${encodeURIComponent(email)}`;
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                const txt = await response.text();
+                console.error("Erreur API :", response.status, txt);
+                showError("Erreur API (" + response.status + ") : " + txt);
+            } else {
+                const data = await response.json();
+                console.log("Réponse brute Azure :", data);
+                window._lastForecast = data;
+                updateForecastUI(data);
+                showSuccess("Prévisions chargées avec succès via Azure Functions.");
+            }
+        } catch (err) {
+            console.error("Erreur réseau ou CORS :", err);
+            showError("Erreur réseau : impossible de contacter le service météo.");
+        } finally {
+            setLoading(false);
+        }
+    });
+
+    // ---------------------------- Normalisation de la réponse
+    function normalizeCore(data) {
+        let core = data || {};
+
+        if (core.data && typeof core.data === "object" && !Array.isArray(core.data)) {
+            core = core.data;
+        }
+        if (core.forecast && typeof core.forecast === "object" && !Array.isArray(core.forecast)) {
+            core = core.forecast;
+        }
+        if (core.result && typeof core.result === "object" && !Array.isArray(core.result)) {
+            core = core.result;
+        }
+        return core;
+    }
+
+    // ---------------------------- Mise à jour de l’interface
+    function updateForecastUI(raw) {
+        noData.classList.add("hidden");
+        forecastPanel.classList.remove("hidden");
+
+        const core = normalizeCore(raw);
+
+        let cityName = pickFirstDefined(
+            core.city,
+            raw.city,
+            core.location && core.location.name,
+            raw.location && raw.location.name,
+            lastCity,
+            "Ville inconnue"
+        );
+
+        let email = pickFirstDefined(core.email, raw.email, storedEmail, "—");
+
+        let generatedAt = pickFirstDefined(
+            core.generated_at,
+            raw.generated_at,
+            core.timestamp,
+            raw.timestamp,
+            new Date().toLocaleString("fr-FR"),
+            "—"
+        );
+
+        // Récupérer le tableau des jours
+        let daysArray = Array.isArray(core.days) ? core.days : null;
+        if (!daysArray) {
+            if (Array.isArray(core.list)) {
+                daysArray = core.list;
+            } else {
+                daysArray = findDaysArray(core) || findDaysArray(raw) || [];
+            }
+        }
+
+        let normalizedDays = [];
+
+        // ----- 1) Format déjà journalier (temp_day, temp_min, temp_max, description)
+        if (daysArray.length && daysArray[0].temp_day !== undefined) {
+            normalizedDays = daysArray.map((d, idx) => {
+                const displayDate = buildDisplayDateFromString(d.date, idx);
+                return {
+                    index: idx,
+                    date: d.date || displayDate,
+                    displayDate,
+                    temp_day: d.temp_day,
+                    temp_min: d.temp_min,
+                    temp_max: d.temp_max,
+                    description: d.description || "",
+                    advice: d.advice || "",
+                    critical: !!d.critical
+                };
+            });
+
+        // ----- 2) Format OpenWeather brut (3h par 3h)
+        } else if (daysArray.length && daysArray[0].main && daysArray[0].weather) {
+            const daysMap = {};
+            daysArray.forEach((item) => {
+                try {
+                    const dt = new Date(item.dt * 1000);
+                    const key = dt.toISOString().substring(0,10); // yyyy-mm-dd
+                    const temp = item.main.temp;
+                    const tempMin = item.main.temp_min;
+                    const tempMax = item.main.temp_max;
+                    const description = item.weather[0].description;
+
+                    if (!daysMap[key]) {
+                        daysMap[key] = {
+                            temps: [],
+                            min: tempMin,
+                            max: tempMax,
+                            descriptions: [],
+                            firstDate: dt
+                        };
+                    }
+                    const d = daysMap[key];
+                    d.temps.push(temp);
+                    d.min = Math.min(d.min, tempMin);
+                    d.max = Math.max(d.max, tempMax);
+                    d.descriptions.push(description);
+                } catch (e) {
+                    console.error("Erreur parsing item :", e);
+                }
+            });
+
+            const sortedKeys = Object.keys(daysMap).sort();
+
+            sortedKeys.forEach((key, i) => {
+                const d = daysMap[key];
+                if (!d.temps.length) return;
+                const tempDay = d.temps.reduce((s, t) => s + t, 0) / d.temps.length;
+                const tempMin = d.min;
+                const tempMax = d.max;
+                const description = d.descriptions[0];
+
+                const { advice, critical } = buildAdvice(tempDay, description);
+                const displayDate = buildDisplayDate(d.firstDate);
+
+                normalizedDays.push({
+                    index: i,
+                    date: key,
+                    displayDate,
+                    temp_day: Math.round(tempDay * 10) / 10,
+                    temp_min: Math.round(tempMin * 10) / 10,
+                    temp_max: Math.round(tempMax * 10) / 10,
+                    description,
+                    advice,
+                    critical
+                });
+            });
+
+        // ----- 3) Format simple { temp, temp_min, temp_max, description }
+        } else if (daysArray.length && daysArray[0].temp !== undefined) {
+            normalizedDays = daysArray.map((d, idx) => {
+                const { advice, critical } = buildAdvice(d.temp, d.description || "");
+                const displayDate = buildDisplayDateFromString(d.date, idx);
+                return {
+                    index: idx,
+                    date: d.date || displayDate,
+                    displayDate,
+                    temp_day: d.temp,
+                    temp_min: d.temp_min ?? d.temp,
+                    temp_max: d.temp_max ?? d.temp,
+                    description: d.description || "",
+                    advice,
+                    critical
+                };
+            });
+        }
+
+        // On garde max 5 jours
+        normalizedDays = normalizedDays.slice(0, 5);
+
+        // Si rien trouvé -> 5 jours fictifs pour ne pas laisser vide
+        if (!normalizedDays.length) {
+            const temp = 25;
+            const { advice, critical } = buildAdvice(temp, "");
+            for (let i = 0; i < 5; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() + i);
+                const displayDate = buildDisplayDate(d);
+                normalizedDays.push({
+                    index: i,
+                    date: displayDate,
+                    displayDate,
+                    temp_day: temp,
+                    temp_min: temp - 2,
+                    temp_max: temp + 2,
+                    description: "Données météo non détaillées",
+                    advice,
+                    critical
+                });
+            }
+        }
+
+        // Texte haut
+        citySummary.textContent =
+            `Météo et prévisions pour ${cityName} (alerte associée à : ${email}).`;
+        forecastMeta.textContent =
+            `Prévisions générées à : ${generatedAt}`;
+
+        // Cartes
+        daysList.innerHTML = "";
+        normalizedDays.forEach((day) => {
+            const card = document.createElement("div");
+            card.className = "day-card";
+
+            const header = document.createElement("div");
+            header.className = "day-header";
+
+            const dateSpan = document.createElement("span");
+            dateSpan.className = "day-date";
+            dateSpan.textContent = day.displayDate || day.date || "—";
+
+            const statusSpan = document.createElement("span");
+            statusSpan.className = "day-status";
+            if (day.critical) {
+                statusSpan.classList.add("day-status-critical");
+                statusSpan.textContent = "Critique ⚠️";
+            } else {
+                statusSpan.classList.add("day-status-normal");
+                statusSpan.textContent = "Normal ✅";
+            }
+
+            header.appendChild(dateSpan);
+            header.appendChild(statusSpan);
+
+            const tempsDiv = document.createElement("div");
+            tempsDiv.className = "day-temps";
+            tempsDiv.textContent =
+                `Jour : ${day.temp_day ?? "—"}°C  |  Min : ${day.temp_min ?? "—"}°C  –  Max : ${day.temp_max ?? "—"}°C`;
+
+            const descDiv = document.createElement("div");
+            descDiv.textContent = `Météo : ${day.description || "—"}`;
+
+            const advDiv = document.createElement("div");
+            advDiv.style.marginTop = "3px";
+            advDiv.style.fontSize = "0.78rem";
+            advDiv.style.color = "#d1d5db";
+            advDiv.textContent = day.advice || "";
+
+            card.appendChild(header);
+            card.appendChild(tempsDiv);
+            card.appendChild(descDiv);
+            card.appendChild(advDiv);
+
+            daysList.appendChild(card);
+        });
+
+        // Alerte demain (simulation)
+    // Alerte demain : utiliser la réponse du backend si disponible
+alertSim.textContent = "";
+if (raw.tomorrow_alert) {
+    const ta = raw.tomorrow_alert;
+    if (ta.message) {
+        alertSim.textContent = ta.message;
+    } else if (ta.has_alert) {
+        alertSim.textContent =
+            `Conditions critiques détectées, une alerte e-mail a été envoyée à ${email}.`;
+    } else {
+        alertSim.textContent =
+            `Aucune alerte e-mail envoyée pour demain.`;
+    }
+} else if (normalizedDays.length >= 2) {
+    // fallback : ancienne simulation
+    const tomorrow = normalizedDays[1];
+    if (tomorrow.critical) {
+        alertSim.textContent =
+            `Demain (${tomorrow.displayDate || tomorrow.date}) à ${cityName} : conditions critiques – une alerte serait envoyée à ${email}.`;
+    } else {
+        alertSim.textContent =
+            `Demain (${tomorrow.displayDate || tomorrow.date}) ne présente pas de conditions critiques particulières.`;
+    }
+}
+
+    }
+
+    // Initialise l’e-mail mémorisé au chargement
+    initEmailFromStorage();
+</script>
+</body>
+</html>
